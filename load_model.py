@@ -1,35 +1,62 @@
 import pandas as pd
 import numpy as np
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, confusion_matrix
-import matplotlib.pyplot as plt
-import seaborn as sns
-import joblib  # Add this import
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+import joblib
+from utils import StepCounter, preprocess_data
 
 
-# Load the model from the file
-model = joblib.load("rf_model.pkl")
+def main():
+    step_counter = StepCounter()
 
-# Load the dataset
-iris = load_iris()
-X = iris.data
-y = iris.target
+    # Load the saved model
+    step_counter.show_step("Loading saved model")
+    try:
+        model = joblib.load("titanic_model.pkl")
+    except FileNotFoundError:
+        print("Error: Model file 'titanic_model.pkl' not found!")
+        return
 
-# Split the dataset into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
-)
+    # Load the dataset
+    step_counter.show_step("Loading dataset")
+    try:
+        df = pd.read_csv("train.csv")
+        print(f"Dataset shape: {df.shape}")
+    except FileNotFoundError:
+        print("Error: Dataset file 'train.csv' not found!")
+        return
 
-# Standardize the features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+    # Extract target variable
+    y = df["Survived"]
 
-# Make predictions
-y_pred = model.predict(X_test)
+    # Preprocess features
+    step_counter.show_step("Preprocessing data")
+    X = preprocess_data(df)
+    print("Features after preprocessing:", X.columns.tolist())
 
-# Evaluate the model
-print(classification_report(y_test, y_pred))
+    # Encode categorical variables
+    step_counter.show_step("Encoding categorical variables")
+    categorical_features = ["Sex", "Embarked", "Title"]
+    for feature in categorical_features:
+        le = LabelEncoder()
+        X[feature] = le.fit_transform(X[feature])
+
+    # Scale features
+    step_counter.show_step("Scaling features")
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    # Sample predictions
+    step_counter.show_step("Sample Predictions")
+    sample_indices = np.random.randint(0, len(X), 5)
+    sample_data = df.iloc[sample_indices]
+    sample_X = X_scaled[sample_indices]
+    sample_predictions = model.predict(sample_X)
+
+    for idx, (_, passenger) in enumerate(sample_data.iterrows()):
+        print(f"\nPassenger {idx + 1}:")
+        print(f"Actual survival: {'Yes' if passenger['Survived'] == 1 else 'No'}")
+        print(f"Predicted survival: {'Yes' if sample_predictions[idx] == 1 else 'No'}")
+
+
+if __name__ == "__main__":
+    main()

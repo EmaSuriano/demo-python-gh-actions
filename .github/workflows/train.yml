@@ -34,4 +34,4 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          path: ./rf_model.pkl
+          path: ./titanic_model.pkl
