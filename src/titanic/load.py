@@ -3,15 +3,18 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import joblib
 from utils import StepCounter, preprocess_data
+import os
+from sklearn.metrics import classification_report
 
 
 def main():
     step_counter = StepCounter()
+    current_dir = os.path.dirname(__file__)
 
     # Load the saved model
     step_counter.show_step("Loading saved model")
     try:
-        model = joblib.load("titanic_model.pkl")
+        model = joblib.load(os.path.join(current_dir, "titanic_model.pkl"))
     except FileNotFoundError:
         print("Error: Model file 'titanic_model.pkl' not found!")
         return
@@ -19,7 +22,7 @@ def main():
     # Load the dataset
     step_counter.show_step("Loading dataset")
     try:
-        df = pd.read_csv("train.csv")
+        df = pd.read_csv(os.path.join(current_dir, "train.csv"))
         print(f"Dataset shape: {df.shape}")
     except FileNotFoundError:
         print("Error: Dataset file 'train.csv' not found!")
@@ -45,17 +48,11 @@ def main():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Sample predictions
-    step_counter.show_step("Sample Predictions")
-    sample_indices = np.random.randint(0, len(X), 5)
-    sample_data = df.iloc[sample_indices]
-    sample_X = X_scaled[sample_indices]
-    sample_predictions = model.predict(sample_X)
-
-    for idx, (_, passenger) in enumerate(sample_data.iterrows()):
-        print(f"\nPassenger {idx + 1}:")
-        print(f"Actual survival: {'Yes' if passenger['Survived'] == 1 else 'No'}")
-        print(f"Predicted survival: {'Yes' if sample_predictions[idx] == 1 else 'No'}")
+    # Evaluate the model
+    step_counter.show_step("Evaluating model")
+    y_pred = model.predict(X_scaled)
+    report = classification_report(y, y_pred, target_names=["Not Survived", "Survived"])
+    print("\nClassification Report:\n", report)
 
 
 if __name__ == "__main__":

@@ -29,9 +29,9 @@ jobs:
           python-version-file: '.python-version'
 
       - name: Train model
-        run: uv run train.py
+        run: uv run src/titanic/train.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          path: ./titanic_model.pkl
+          path: .src/titanic/titanic_model.pkl

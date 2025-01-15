@@ -3,9 +3,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix
+from utils import StepCounter, preprocess_data
 import joblib
 from time import time
-from utils import StepCounter, preprocess_data
+import os
 
 
 def main():
@@ -14,7 +15,8 @@ def main():
 
     # Load the dataset
     step_counter.show_step("Loading Titanic dataset")
-    df = pd.read_csv("train.csv")  # Download this file from Kaggle
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    df = pd.read_csv(os.path.join(current_dir, "train.csv"))
     print(f"Dataset shape: {df.shape}")
 
     # Extract target variable
@@ -67,7 +69,7 @@ def main():
 
     # Save model
     step_counter.show_step("Saving model")
-    joblib.dump(rf_model, "titanic_model.pkl")
+    joblib.dump(rf_model, os.path.join(current_dir, "titanic_model.pkl"))
 
     # Make predictions
     step_counter.show_step("Making predictions")
